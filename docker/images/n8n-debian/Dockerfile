@@ -1,4 +1,4 @@
-FROM node:14.15
+FROM node:fermium-stretch
 
 ARG N8N_VERSION
 
