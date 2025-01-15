@@ -163,7 +163,7 @@
     "luxon": "^3.1.0",
     "mysql2": "~2.3.3",
     "n8n-core": "~0.151.1",
-    "n8n-editor-ui": "~0.177.1",
+    "n8n-editor-ui": "~0.192.0",
     "n8n-nodes-base": "~0.209.1",
     "n8n-workflow": "~0.133.1",
     "nodemailer": "^6.7.1",
