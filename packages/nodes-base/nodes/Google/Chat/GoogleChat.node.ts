@@ -1,6 +1,7 @@
-import { IExecuteFunctions } from 'n8n-core';
-
-import {
+import jwt from 'jsonwebtoken';
+import moment from 'moment-timezone';
+import type {
+	IExecuteFunctions,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	IDataObject,
@@ -10,12 +11,9 @@ import {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-	NodeOperationError,
+	IRequestOptions,
 } from 'n8n-workflow';
-
-import { IMessage, IMessageUi } from './MessageInterface';
-
-import { OptionsWithUri } from 'request';
+import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
 
 import {
 	// attachmentFields,
@@ -31,12 +29,9 @@ import {
 	spaceFields,
 	spaceOperations,
 } from './descriptions';
-
 import { googleApiRequest, googleApiRequestAllItems, validateJSON } from './GenericFunctions';
+import type { IMessage, IMessageUi } from './MessageInterface';
 
-import moment from 'moment-timezone';
-
-import jwt from 'jsonwebtoken';
 export class GoogleChat implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Google Chat',
@@ -49,8 +44,8 @@ export class GoogleChat implements INodeType {
 		defaults: {
 			name: 'Google Chat',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main],
 		credentials: [
 			{
 				name: 'googleApi',
@@ -110,7 +105,7 @@ export class GoogleChat implements INodeType {
 
 	methods = {
 		loadOptions: {
-			// Get all the spaces to display them to user so that he can
+			// Get all the spaces to display them to user so that they can
 			// select them easily
 			async getSpaces(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const returnData: INodePropertyOptions[] = [];
@@ -157,7 +152,7 @@ export class GoogleChat implements INodeType {
 						},
 					);
 
-					const options: OptionsWithUri = {
+					const options: IRequestOptions = {
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded',
 						},
@@ -246,7 +241,7 @@ export class GoogleChat implements INodeType {
 						const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i);
 
 						items[i].binary![binaryPropertyName] = await this.helpers.prepareBinaryData(
-							responseData,
+							responseData as Buffer,
 							endpoint,
 						);
 					}
@@ -536,7 +531,7 @@ export class GoogleChat implements INodeType {
 				}
 
 				const executionData = this.helpers.constructExecutionMetaData(
-					this.helpers.returnJsonArray(responseData),
+					this.helpers.returnJsonArray(responseData as IDataObject),
 					{ itemData: { item: i } },
 				);
 				returnData.push(...executionData);
@@ -560,10 +555,10 @@ export class GoogleChat implements INodeType {
 
 		if (operation === 'download') {
 			// For file downloads the files get attached to the existing items
-			return this.prepareOutputData(items);
+			return [items];
 		} else {
 			// For all other ones does the output get replaced
-			return this.prepareOutputData(returnData);
+			return [returnData];
 		}
 	}
 }
